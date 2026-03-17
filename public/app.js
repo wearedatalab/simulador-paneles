@@ -251,10 +251,29 @@
     });
   }
 
+  const drawHint = $('#draw-hint');
+  const areaCount = $('#area-count');
+
   function updateAreaButtons() {
     const hasRects = state.drawRects.length > 0;
     btnUndoArea.disabled = !hasRects;
     btnClearAreas.disabled = !hasRects;
+    btnConfirmArea.disabled = !hasRects;
+
+    // Show/hide hint
+    if (drawHint) drawHint.classList.toggle('hidden', hasRects);
+
+    // Update area count badge
+    if (areaCount) {
+      if (hasRects) {
+        areaCount.classList.remove('hidden');
+        areaCount.textContent = state.drawRects.length === 1
+          ? '1 zona marcada'
+          : `${state.drawRects.length} zonas marcadas`;
+      } else {
+        areaCount.classList.add('hidden');
+      }
+    }
   }
 
   function getCanvasPos(e) {

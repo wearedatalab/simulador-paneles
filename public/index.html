@@ -88,7 +88,18 @@
     <section id="step-select-area" class="step">
       <div class="step-card">
         <h2 class="step-title">Marca la pared</h2>
-        <p class="step-desc">Dibuja un rect&aacute;ngulo sobre el &aacute;rea donde quieres colocar los paneles.</p>
+        <p class="step-desc">Arrastra el dedo o mouse sobre la pared para marcar d&oacute;nde quieres los paneles.</p>
+
+        <!-- Hint overlay (shown until first draw) -->
+        <div id="draw-hint" class="draw-hint">
+          <div class="draw-hint-inner">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3h7v7H3zM14 3h7v7h-7z" stroke-dasharray="3 2"/>
+              <path d="M8 16l-2 2m0 0l-2-2m2 2V12"/>
+            </svg>
+            <span>Dibuja un rect&aacute;ngulo sobre la pared</span>
+          </div>
+        </div>
 
         <div class="canvas-wrapper" id="canvas-wrapper">
           <canvas id="draw-canvas"></canvas>
@@ -97,12 +108,13 @@
         <div class="area-actions">
           <button id="btn-undo-area" class="btn-chip" disabled>&#8630; Deshacer</button>
           <button id="btn-clear-areas" class="btn-chip" disabled>&#10005; Limpiar</button>
+          <span id="area-count" class="area-count hidden">0 zonas</span>
         </div>
 
         <div class="step-actions">
           <button id="btn-back-2" class="btn-outline">&#8592; Atr&aacute;s</button>
           <button id="btn-skip-area" class="btn-outline">Toda la pared</button>
-          <button id="btn-confirm-area" class="btn-primary">Siguiente &#8594;</button>
+          <button id="btn-confirm-area" class="btn-primary" disabled>Siguiente &#8594;</button>
         </div>
       </div>
     </section>
