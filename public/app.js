@@ -11,7 +11,7 @@
     originalMime: 'image/jpeg',
     selectedPanelId: null,
     selectedWall: 'all',
-    model: 'gemini-2.0-flash-exp-image-generation',
+    model: 'gemini-2.5-flash-preview-04-17',
     resultImage: null,
     sliderPos: 0.5,
   };
