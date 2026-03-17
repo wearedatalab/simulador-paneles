@@ -9,17 +9,17 @@
 }
 
 :root {
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-light: #eff6ff;
-  --primary-ring: rgba(37, 99, 235, 0.25);
-  --bg: #f1f5f9;
+  --primary: #E31E24;
+  --primary-hover: #c4191e;
+  --primary-light: #fef2f2;
+  --primary-ring: rgba(227, 30, 36, 0.25);
+  --bg: #f5f5f5;
   --surface: #ffffff;
-  --text: #0f172a;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
-  --border: #e2e8f0;
-  --border-hover: #cbd5e1;
+  --text: #1a1a1a;
+  --text-secondary: #555555;
+  --text-muted: #999999;
+  --border: #e5e5e5;
+  --border-hover: #cccccc;
   --radius: 16px;
   --radius-sm: 10px;
   --radius-xs: 6px;
@@ -40,7 +40,7 @@ body {
 
 /* ---- Header ---- */
 .header {
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #2563eb 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #333333 50%, #E31E24 100%);
   padding: 0.85rem 1rem;
   position: sticky;
   top: 0;
