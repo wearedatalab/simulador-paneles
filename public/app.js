@@ -26,6 +26,21 @@
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => document.querySelectorAll(s);
 
+  // --- Welcome screen ---
+  const welcomeScreen = $('#welcome-screen');
+  const wizardContainer = $('#wizard-container');
+  const btnStart = $('#btn-start');
+  const btnStart2 = $('#btn-start-2');
+
+  function startWizard() {
+    welcomeScreen.classList.add('hidden');
+    wizardContainer.classList.remove('hidden');
+    window.scrollTo({ top: 0 });
+  }
+
+  if (btnStart) btnStart.addEventListener('click', startWizard);
+  if (btnStart2) btnStart2.addEventListener('click', startWizard);
+
   const uploadArea     = $('#upload-area');
   const fileInput      = $('#file-input');
   const uploadPlaceholder = $('#upload-placeholder');

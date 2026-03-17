@@ -31,6 +31,45 @@
     </div>
   </header>
 
+  <!-- ============ WELCOME SCREEN ============ -->
+  <section id="welcome-screen" class="welcome-screen">
+    <div class="hero-banner hero-banner--full">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <p class="hero-tag">Simulador con Inteligencia Artificial</p>
+        <h2 class="hero-title">Dise&ntilde;a el espacio<br>de tus sue&ntilde;os</h2>
+        <p class="hero-subtitle">Visualiza c&oacute;mo lucir&aacute;n nuestros paneles decorativos en tu hogar antes de comprarlos.</p>
+        <button id="btn-start" class="btn-start">Comenzar ahora &rarr;</button>
+      </div>
+    </div>
+
+    <div class="welcome-features">
+      <div class="feature-item">
+        <div class="feature-icon">&#128247;</div>
+        <h3>Sube una foto</h3>
+        <p>Toma una foto de tu pared y s&uacute;bela al simulador</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">&#127912;</div>
+        <h3>Elige un panel</h3>
+        <p>Escoge entre nuestros estilos de paneles decorativos</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">&#10024;</div>
+        <h3>Visualiza el resultado</h3>
+        <p>La IA transforma tu espacio en segundos</p>
+      </div>
+    </div>
+
+    <div class="welcome-bottom">
+      <button id="btn-start-2" class="btn-start btn-start--secondary">Transformar mi espacio &rarr;</button>
+      <p class="welcome-note">Gratis &bull; Sin registro &bull; Resultado instant&aacute;neo</p>
+    </div>
+  </section>
+
+  <!-- ============ WIZARD (hidden initially) ============ -->
+  <div id="wizard-container" class="wizard-container hidden">
+
   <!-- Wizard Progress Bar -->
   <div class="wizard-progress">
     <div class="wizard-steps">
@@ -60,16 +99,6 @@
 
     <!-- ============ STEP 1: Upload ============ -->
     <section id="step-upload" class="step active">
-      <!-- Hero Banner -->
-      <div class="hero-banner">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-          <p class="hero-tag">Simulador con Inteligencia Artificial</p>
-          <h2 class="hero-title">Dise&ntilde;a el espacio<br>de tus sue&ntilde;os</h2>
-          <p class="hero-subtitle">Visualiza c&oacute;mo lucir&aacute;n nuestros paneles decorativos en tu hogar antes de comprarlos.</p>
-        </div>
-      </div>
-
       <div class="step-card">
         <h2 class="step-title">Comienza con una foto</h2>
         <p class="step-desc">Toma o selecciona una foto frontal de la pared que quieres transformar.</p>
@@ -197,6 +226,8 @@
     </section>
 
   </main>
+
+  </div><!-- /wizard-container -->
 
   <!-- Loading overlay -->
   <div id="loading-overlay" class="loading-overlay hidden">
