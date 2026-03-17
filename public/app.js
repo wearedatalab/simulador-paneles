@@ -35,7 +35,7 @@
   const btnGenerate    = $('#btn-generate');
   const extraInstructions = $('#extra-instructions');
   const loadingOverlay = $('#loading-overlay');
-  const loadingText    = $('.loading-text');
+  const loadingText    = $('#loading-phrase');
   const toast          = $('#toast');
   const apiStatusBanner = $('#api-status-banner');
 
@@ -586,11 +586,13 @@
   // Loading & Errors
   // ============================================================
   const loadingMessages = [
-    'La IA esta analizando tu espacio...',
-    'Identificando las paredes...',
-    'Aplicando los paneles seleccionados...',
-    'Ajustando perspectiva e iluminacion...',
-    'Casi listo, dando los toques finales...',
+    'Eternit te acompa\u00f1a a hacer realidad el espacio que siempre so\u00f1aste...',
+    'Analizando tu espacio con inteligencia artificial...',
+    'Identificando las paredes de tu hogar...',
+    'Aplicando el panel perfecto para tu dise\u00f1o...',
+    'Ajustando perspectiva e iluminaci\u00f3n...',
+    'Transformando tu espacio en algo extraordinario...',
+    'Casi listo... tu sue\u00f1o est\u00e1 tomando forma...',
   ];
 
   let loadingInterval;
