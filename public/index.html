@@ -57,29 +57,40 @@
       <p class="upload-tip">&#9201; Usa una foto frontal de la pared para mejores resultados</p>
     </section>
 
+    <!-- ============ STEP 1.5: Select wall area ============ -->
+    <section id="step-select-area" class="step hidden">
+      <div class="step-header">
+        <span class="step-number">2</span>
+        <h2>Marca la pared donde aplicar paneles</h2>
+      </div>
+
+      <p class="area-instructions">Dibuja un rect&aacute;ngulo sobre la pared donde quieres colocar los paneles. Puedes dibujar varias &aacute;reas.</p>
+
+      <div class="canvas-wrapper" id="canvas-wrapper">
+        <canvas id="draw-canvas"></canvas>
+      </div>
+
+      <div class="area-actions">
+        <button id="btn-undo-area" class="btn-small" disabled>&#8630; Deshacer</button>
+        <button id="btn-clear-areas" class="btn-small" disabled>&#10005; Limpiar todo</button>
+        <button id="btn-skip-area" class="btn-small btn-ghost">Toda la pared &#8594;</button>
+      </div>
+
+      <button id="btn-confirm-area" class="btn-generate">Continuar &#8594;</button>
+    </section>
+
     <!-- ============ STEP 2: Panel Catalog ============ -->
     <section id="step-catalog" class="step hidden">
       <div class="step-header">
-        <span class="step-number">2</span>
+        <span class="step-number">3</span>
         <h2>Elige un panel</h2>
       </div>
       <div id="panel-grid" class="tile-grid"></div>
 
-      <!-- Wall selector -->
-      <div class="wall-selector">
-        <label class="wall-label">&iquest;D&oacute;nde aplicar los paneles?</label>
-        <div class="wall-options">
-          <button class="wall-btn selected" data-wall="all">Todas las paredes</button>
-          <button class="wall-btn" data-wall="left">Pared izquierda</button>
-          <button class="wall-btn" data-wall="right">Pared derecha</button>
-          <button class="wall-btn" data-wall="back">Pared del fondo</button>
-        </div>
-      </div>
-
       <!-- Additional instructions -->
       <div class="instructions-block">
         <label for="extra-instructions" class="instructions-label">Instrucciones adicionales <span class="optional">(opcional)</span></label>
-        <textarea id="extra-instructions" class="instructions-textarea" rows="3" placeholder="Ej: Tambi&eacute;n cambia el color del techo a blanco..."></textarea>
+        <textarea id="extra-instructions" class="instructions-textarea" rows="3" placeholder="Ej: Solo cubre la pared izquierda, no la derecha..."></textarea>
       </div>
 
       <!-- Model selector -->
@@ -87,10 +98,10 @@
         <label class="model-label">Modelo de IA</label>
         <div class="model-options">
           <button class="model-btn selected" data-model="gemini-2.5-flash-image">
-            <strong>Nano Banana</strong><span>R&aacute;pido</span>
+            <strong>Flash 2.5</strong><span>R&aacute;pido</span>
           </button>
           <button class="model-btn" data-model="gemini-3.1-flash-image-preview">
-            <strong>Nano Banana 2</strong><span>Mejor calidad</span>
+            <strong>Flash 3.1</strong><span>Mejor calidad</span>
           </button>
         </div>
       </div>
@@ -104,7 +115,7 @@
     <!-- ============ STEP 3: Result ============ -->
     <section id="step-result" class="step hidden">
       <div class="step-header">
-        <span class="step-number">3</span>
+        <span class="step-number">4</span>
         <h2>Resultado</h2>
       </div>
 

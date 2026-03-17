@@ -233,6 +233,75 @@ body {
   display: none;
 }
 
+/* ---- Area Selection Canvas ---- */
+.area-instructions {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.canvas-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: var(--surface);
+  cursor: crosshair;
+  margin-bottom: 0.75rem;
+}
+
+.canvas-wrapper canvas {
+  display: block;
+  width: 100%;
+}
+
+.area-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-small {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.85rem;
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-small:hover:not(:disabled) {
+  background: var(--bg);
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+
+.btn-small:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--primary);
+  margin-left: auto;
+}
+
+.btn-ghost:hover {
+  background: var(--primary-light) !important;
+  color: var(--primary) !important;
+}
+
 /* ---- Panel/Tile Grid ---- */
 .tile-grid {
   display: grid;
