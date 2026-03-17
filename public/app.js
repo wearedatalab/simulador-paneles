@@ -364,8 +364,10 @@
       card.dataset.id = panel.id;
 
       const canvas = document.createElement('canvas');
-      canvas.width = 120;
-      canvas.height = 120;
+      const dpr = window.devicePixelRatio || 1;
+      const size = Math.round(160 * dpr);
+      canvas.width = size;
+      canvas.height = size;
       canvas.className = 'tile-swatch';
       panel.generateVisual(canvas);
       card.appendChild(canvas);
