@@ -285,6 +285,50 @@ body {
   font-weight: 600;
 }
 
+/* ---- Wall Selector ---- */
+.wall-selector {
+  margin-bottom: 1.25rem;
+}
+
+.wall-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.wall-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.wall-btn {
+  padding: 0.5rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-secondary);
+  transition: all var(--transition);
+}
+
+.wall-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+
+.wall-btn.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+
 /* ---- Instructions ---- */
 .instructions-block {
   margin-bottom: 1.25rem;

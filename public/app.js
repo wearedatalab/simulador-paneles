@@ -10,6 +10,7 @@
     originalImage: null,
     originalMime: 'image/jpeg',
     selectedPanelId: null,
+    selectedWall: 'all',
     model: 'gemini-2.0-flash-exp-image-generation',
     resultImage: null,
     sliderPos: 0.5,
@@ -153,7 +154,18 @@
   buildCatalog();
 
   // ============================================================
-  // 3. Model selector
+  // 3. Wall selector
+  // ============================================================
+  document.querySelectorAll('.wall-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.wall-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.selectedWall = btn.dataset.wall;
+    });
+  });
+
+  // ============================================================
+  // 4. Model selector
   // ============================================================
   document.querySelectorAll('.model-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -175,11 +187,20 @@
     if (!panel) return;
 
     // Build prompt for WALL PANELS
-    let prompt = `Replace the wall surface in this photo with ${panel.prompt}. ` +
+    const wallMap = {
+      all: 'all visible walls',
+      left: 'only the left wall',
+      right: 'only the right wall',
+      back: 'only the back/center wall',
+    };
+    const wallTarget = wallMap[state.selectedWall] || 'all visible walls';
+
+    let prompt = `Replace ${wallTarget} in this photo with ${panel.prompt}. ` +
       `The panels should have vertical slats/grooves running from floor to ceiling. ` +
       `Maintain the exact same perspective, lighting, shadows, floor, furniture, and all other elements. ` +
       `The new wall panels should look photorealistic and naturally integrated with the room's lighting. ` +
-      `Do NOT change anything else in the image except the wall surface where panels should be applied.`;
+      `Do NOT change anything else in the image except the specified wall surface where panels should be applied. ` +
+      `Leave other walls unchanged if only one wall is specified.`;
 
     const extra = extraInstructions.value.trim();
     if (extra) {

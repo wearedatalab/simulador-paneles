@@ -65,10 +65,21 @@
       </div>
       <div id="panel-grid" class="tile-grid"></div>
 
+      <!-- Wall selector -->
+      <div class="wall-selector">
+        <label class="wall-label">&iquest;D&oacute;nde aplicar los paneles?</label>
+        <div class="wall-options">
+          <button class="wall-btn selected" data-wall="all">Todas las paredes</button>
+          <button class="wall-btn" data-wall="left">Pared izquierda</button>
+          <button class="wall-btn" data-wall="right">Pared derecha</button>
+          <button class="wall-btn" data-wall="back">Pared del fondo</button>
+        </div>
+      </div>
+
       <!-- Additional instructions -->
       <div class="instructions-block">
         <label for="extra-instructions" class="instructions-label">Instrucciones adicionales <span class="optional">(opcional)</span></label>
-        <textarea id="extra-instructions" class="instructions-textarea" rows="3" placeholder="Ej: Solo cubre la pared izquierda, no la derecha..."></textarea>
+        <textarea id="extra-instructions" class="instructions-textarea" rows="3" placeholder="Ej: Tambi&eacute;n cambia el color del techo a blanco..."></textarea>
       </div>
 
       <!-- Model selector -->
@@ -76,10 +87,10 @@
         <label class="model-label">Modelo de IA</label>
         <div class="model-options">
           <button class="model-btn selected" data-model="gemini-2.0-flash-exp-image-generation">
-            <strong>Flash 2.5</strong><span>R&aacute;pido</span>
+            <strong>Flash 2.0</strong><span>R&aacute;pido</span>
           </button>
-          <button class="model-btn" data-model="imagen-3.0-generate-002">
-            <strong>Nano Banana Pro</strong><span>Mejor calidad</span>
+          <button class="model-btn" data-model="gemini-2.5-flash-preview-04-17">
+            <strong>Flash 2.5</strong><span>Mejor calidad</span>
           </button>
         </div>
       </div>
