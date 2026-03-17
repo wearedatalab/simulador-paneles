@@ -362,17 +362,23 @@ body {
 .canvas-wrapper {
   position: relative;
   width: 100%;
+  max-height: 55vh;
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: #000;
   cursor: crosshair;
   margin-bottom: 0.5rem;
   touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .canvas-wrapper canvas {
   display: block;
-  width: 100%;
+  max-width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
 }
 
 .area-actions {

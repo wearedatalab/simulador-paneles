@@ -175,9 +175,16 @@
     const img = new Image();
     img.onload = () => {
       const wrapperWidth = canvasWrapper.clientWidth;
+      const maxH = window.innerHeight * 0.55;
       const ratio = img.naturalHeight / img.naturalWidth;
-      const canvasW = wrapperWidth;
-      const canvasH = Math.round(wrapperWidth * ratio);
+      let canvasW = wrapperWidth;
+      let canvasH = Math.round(wrapperWidth * ratio);
+
+      // Limit height to 55vh
+      if (canvasH > maxH) {
+        canvasH = Math.round(maxH);
+        canvasW = Math.round(canvasH / ratio);
+      }
 
       drawCanvas.width = canvasW;
       drawCanvas.height = canvasH;
