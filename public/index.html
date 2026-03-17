@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador de Paneles — Vista previa con IA</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- API status banner (hidden by default) -->
+  <div id="api-status-banner" class="api-banner hidden">
+    <span>&#9888; API key no configurada. Edita el archivo <code>.env</code> con tu clave de <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a> y reinicia el servidor.</span>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <div class="logo-squares">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div>
+          <h1>Simulador de Paneles</h1>
+          <p class="subtitle">Potenciado por Inteligencia Artificial</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ============ STEP 1: Upload ============ -->
+    <section id="step-upload" class="step">
+      <div class="step-header">
+        <span class="step-number">1</span>
+        <h2>Sube una foto de tu pared</h2>
+      </div>
+
+      <div id="upload-area" class="upload-area">
+        <div id="upload-placeholder" class="upload-placeholder">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <p class="upload-text">Arrastra una foto aqu&iacute;</p>
+          <p class="upload-subtext">o haz clic para seleccionar</p>
+          <span class="upload-formats">JPG, PNG &mdash; Hasta 10MB</span>
+        </div>
+        <img id="preview-image" class="preview-image hidden" alt="Vista previa" />
+        <button id="btn-change" class="btn-change hidden">&#8613; Cambiar foto</button>
+        <input type="file" id="file-input" accept="image/jpeg,image/png" hidden />
+      </div>
+
+      <p class="upload-tip">&#9201; Usa una foto frontal de la pared para mejores resultados</p>
+    </section>
+
+    <!-- ============ STEP 2: Panel Catalog ============ -->
+    <section id="step-catalog" class="step hidden">
+      <div class="step-header">
+        <span class="step-number">2</span>
+        <h2>Elige un panel</h2>
+      </div>
+      <div id="panel-grid" class="tile-grid"></div>
+
+      <!-- Additional instructions -->
+      <div class="instructions-block">
+        <label for="extra-instructions" class="instructions-label">Instrucciones adicionales <span class="optional">(opcional)</span></label>
+        <textarea id="extra-instructions" class="instructions-textarea" rows="3" placeholder="Ej: Solo cubre la pared izquierda, no la derecha..."></textarea>
+      </div>
+
+      <!-- Model selector -->
+      <div class="model-selector">
+        <label class="model-label">Modelo de IA</label>
+        <div class="model-options">
+          <button class="model-btn selected" data-model="gemini-2.0-flash-exp-image-generation">
+            <strong>Flash 2.5</strong><span>R&aacute;pido</span>
+          </button>
+          <button class="model-btn" data-model="imagen-3.0-generate-002">
+            <strong>Nano Banana Pro</strong><span>Mejor calidad</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Generate button -->
+      <button id="btn-generate" class="btn-generate" disabled>
+        &#9889; Generar vista previa con IA
+      </button>
+    </section>
+
+    <!-- ============ STEP 3: Result ============ -->
+    <section id="step-result" class="step hidden">
+      <div class="step-header">
+        <span class="step-number">3</span>
+        <h2>Resultado</h2>
+      </div>
+
+      <div class="result-container">
+        <div class="comparison-slider" id="comparison-slider">
+          <img id="result-before" class="comparison-img" alt="Antes" />
+          <img id="result-after" class="comparison-img comparison-after" alt="Despu&eacute;s" />
+          <div class="slider-line" id="slider-line">
+            <div class="slider-handle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <path d="M8 5l-5 7 5 7M16 5l5 7-5 7"/>
+              </svg>
+            </div>
+          </div>
+          <span class="label-before">Antes</span>
+          <span class="label-after">Despu&eacute;s</span>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button id="btn-download" class="btn-secondary">&#11015; Descargar imagen</button>
+        <button id="btn-retry" class="btn-secondary">&#8635; Intentar de nuevo</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Loading overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <p class="loading-text">Generando vista previa...</p>
+      <p class="loading-subtext">Esto puede tomar 15-30 segundos</p>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Simulador potenciado por IA Gemini &mdash; &copy; 2026</p>
+  </footer>
+
+  <script src="panels.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
