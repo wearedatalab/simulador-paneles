@@ -1,5 +1,5 @@
 // ============================================================
-// Simulador de Paneles — IA con Gemini API (server-side proxy)
+// Simulador de Paneles — Mobile-first Wizard
 // ============================================================
 
 (function () {
@@ -7,6 +7,7 @@
 
   // --- State ---
   const state = {
+    currentStep: 1,
     originalImage: null,
     originalMime: 'image/jpeg',
     selectedPanelId: null,
@@ -14,7 +15,7 @@
     model: 'gemini-2.5-flash-image',
     resultImage: null,
     sliderPos: 0.5,
-    drawRects: [],       // [{x, y, w, h} in normalized 0-1 coords]
+    drawRects: [],
     isDrawing: false,
     drawStart: null,
     naturalWidth: 0,
@@ -23,6 +24,8 @@
 
   // --- DOM ---
   const $ = (s) => document.querySelector(s);
+  const $$ = (s) => document.querySelectorAll(s);
+
   const uploadArea     = $('#upload-area');
   const fileInput      = $('#file-input');
   const uploadPlaceholder = $('#upload-placeholder');
@@ -36,10 +39,12 @@
   const toast          = $('#toast');
   const apiStatusBanner = $('#api-status-banner');
 
-  const stepUpload     = $('#step-upload');
-  const stepSelectArea = $('#step-select-area');
-  const stepCatalog    = $('#step-catalog');
-  const stepResult     = $('#step-result');
+  const steps = {
+    1: $('#step-upload'),
+    2: $('#step-select-area'),
+    3: $('#step-catalog'),
+    4: $('#step-result'),
+  };
 
   const drawCanvas     = $('#draw-canvas');
   const canvasWrapper  = $('#canvas-wrapper');
@@ -49,7 +54,7 @@
   const btnConfirmArea = $('#btn-confirm-area');
 
   // ============================================================
-  // Check API status on load
+  // Check API status
   // ============================================================
   async function checkAPIStatus() {
     try {
@@ -65,19 +70,40 @@
   checkAPIStatus();
 
   // ============================================================
-  // Step navigation
+  // Wizard Navigation
   // ============================================================
-  function showStep(target) {
-    [stepUpload, stepSelectArea, stepCatalog, stepResult].forEach(s => s.classList.add('hidden'));
-    target.classList.remove('hidden');
+  function goToStep(stepNum) {
+    state.currentStep = stepNum;
+
+    // Hide all steps
+    Object.values(steps).forEach(s => s.classList.remove('active'));
+
+    // Show target step
+    steps[stepNum].classList.add('active');
+
+    // Update wizard progress dots
+    $$('.wizard-step').forEach(ws => {
+      const wsNum = parseInt(ws.dataset.step);
+      ws.classList.remove('active', 'completed');
+      if (wsNum === stepNum) ws.classList.add('active');
+      else if (wsNum < stepNum) ws.classList.add('completed');
+    });
+
+    // Update wizard lines
+    const lines = $$('.wizard-line');
+    lines.forEach((line, i) => {
+      line.classList.toggle('completed', i + 1 < stepNum);
+    });
+
+    // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // ============================================================
-  // 1. File Upload
+  // Step 1: File Upload
   // ============================================================
   uploadArea.addEventListener('click', (e) => {
-    if (e.target.closest('.btn-change')) return;
+    if (e.target.closest('.btn-outline')) return;
     fileInput.click();
   });
 
@@ -111,38 +137,43 @@
       previewImage.src = state.originalImage;
       previewImage.classList.remove('hidden');
       uploadPlaceholder.style.display = 'none';
-      btnChange.classList.remove('hidden');
-      uploadArea.style.padding = '1.5rem';
-      uploadArea.style.borderStyle = 'solid';
+      uploadArea.classList.add('has-image');
 
-      // Load image to get natural dimensions, then go to area selection
+      // Show action buttons
+      $('#upload-actions').classList.remove('hidden');
+
+      // Get natural dimensions
       const img = new Image();
       img.onload = () => {
         state.naturalWidth = img.naturalWidth;
         state.naturalHeight = img.naturalHeight;
-        state.drawRects = [];
-        initDrawCanvas();
-        showStep(stepSelectArea);
-        stepUpload.classList.remove('hidden');
       };
       img.src = state.originalImage;
     };
     reader.readAsDataURL(file);
   }
 
+  // Change photo
   btnChange.addEventListener('click', (e) => {
     e.stopPropagation();
     fileInput.value = '';
     fileInput.click();
   });
 
+  // Next from step 1
+  $('#btn-next-1').addEventListener('click', () => {
+    if (!state.originalImage) return;
+    state.drawRects = [];
+    initDrawCanvas();
+    goToStep(2);
+  });
+
   // ============================================================
-  // 1.5. Draw area selector (canvas overlay)
+  // Step 2: Draw area selector
   // ============================================================
   function initDrawCanvas() {
     const img = new Image();
     img.onload = () => {
-      // Fit canvas to wrapper width
       const wrapperWidth = canvasWrapper.clientWidth;
       const ratio = img.naturalHeight / img.naturalWidth;
       const canvasW = wrapperWidth;
@@ -165,7 +196,6 @@
       ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
       ctx.drawImage(img, 0, 0, drawCanvas.width, drawCanvas.height);
 
-      // Draw existing rectangles
       state.drawRects.forEach((r, i) => {
         const x = r.x * drawCanvas.width;
         const y = r.y * drawCanvas.height;
@@ -180,15 +210,38 @@
         ctx.strokeRect(x, y, w, h);
         ctx.setLineDash([]);
 
-        // Label
-        ctx.fillStyle = '#2563eb';
-        ctx.font = 'bold 14px Inter, system-ui, sans-serif';
-        ctx.fillText(`Zona ${i + 1}`, x + 6, y + 18);
+        ctx.fillStyle = 'rgba(37, 99, 235, 0.85)';
+        ctx.font = 'bold 13px Inter, system-ui, sans-serif';
+        ctx.fillText(`Zona ${i + 1}`, x + 5, y + 16);
       });
 
       updateAreaButtons();
     };
     img.src = state.originalImage;
+  }
+
+  function redrawCanvasSync() {
+    const ctx = drawCanvas.getContext('2d');
+    ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    ctx.drawImage(previewImage, 0, 0, drawCanvas.width, drawCanvas.height);
+
+    state.drawRects.forEach((r, i) => {
+      const x = r.x * drawCanvas.width;
+      const y = r.y * drawCanvas.height;
+      const w = r.w * drawCanvas.width;
+      const h = r.h * drawCanvas.height;
+
+      ctx.fillStyle = 'rgba(37, 99, 235, 0.25)';
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 3]);
+      ctx.strokeRect(x, y, w, h);
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(37, 99, 235, 0.85)';
+      ctx.font = 'bold 13px Inter, system-ui, sans-serif';
+      ctx.fillText(`Zona ${i + 1}`, x + 5, y + 16);
+    });
   }
 
   function updateAreaButtons() {
@@ -197,14 +250,13 @@
     btnClearAreas.disabled = !hasRects;
   }
 
-  // Mouse/touch drawing on canvas
   function getCanvasPos(e) {
     const rect = drawCanvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     return {
-      x: (clientX - rect.left) / rect.width,
-      y: (clientY - rect.top) / rect.height,
+      x: Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)),
+      y: Math.max(0, Math.min(1, (clientY - rect.top) / rect.height)),
     };
   }
 
@@ -217,13 +269,12 @@
   }
 
   window.addEventListener('mousemove', moveDraw);
-  window.addEventListener('touchmove', (e) => { if (state.isDrawing) moveDraw(e); }, { passive: true });
+  window.addEventListener('touchmove', (e) => { if (state.isDrawing) { e.preventDefault(); moveDraw(e); } }, { passive: false });
 
   function moveDraw(e) {
     if (!state.isDrawing || !state.drawStart) return;
     const pos = getCanvasPos(e);
 
-    // Redraw with temp rect
     redrawCanvasSync();
     const ctx = drawCanvas.getContext('2d');
     const x = state.drawStart.x * drawCanvas.width;
@@ -240,31 +291,6 @@
     ctx.setLineDash([]);
   }
 
-  function redrawCanvasSync() {
-    const ctx = drawCanvas.getContext('2d');
-    const img = previewImage;
-    ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-    ctx.drawImage(img, 0, 0, drawCanvas.width, drawCanvas.height);
-
-    state.drawRects.forEach((r, i) => {
-      const x = r.x * drawCanvas.width;
-      const y = r.y * drawCanvas.height;
-      const w = r.w * drawCanvas.width;
-      const h = r.h * drawCanvas.height;
-
-      ctx.fillStyle = 'rgba(37, 99, 235, 0.25)';
-      ctx.fillRect(x, y, w, h);
-      ctx.strokeStyle = '#2563eb';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 3]);
-      ctx.strokeRect(x, y, w, h);
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#2563eb';
-      ctx.font = 'bold 14px Inter, system-ui, sans-serif';
-      ctx.fillText(`Zona ${i + 1}`, x + 6, y + 18);
-    });
-  }
-
   window.addEventListener('mouseup', endDraw);
   window.addEventListener('touchend', endDraw);
 
@@ -275,19 +301,18 @@
     }
     state.isDrawing = false;
 
-    // Get final pos
     let pos;
     if (e.changedTouches) {
       const rect = drawCanvas.getBoundingClientRect();
       pos = {
-        x: (e.changedTouches[0].clientX - rect.left) / rect.width,
-        y: (e.changedTouches[0].clientY - rect.top) / rect.height,
+        x: Math.max(0, Math.min(1, (e.changedTouches[0].clientX - rect.left) / rect.width)),
+        y: Math.max(0, Math.min(1, (e.changedTouches[0].clientY - rect.top) / rect.height)),
       };
     } else {
       const rect = drawCanvas.getBoundingClientRect();
       pos = {
-        x: (e.clientX - rect.left) / rect.width,
-        y: (e.clientY - rect.top) / rect.height,
+        x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
+        y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
       };
     }
 
@@ -296,7 +321,6 @@
     const w = Math.abs(pos.x - state.drawStart.x);
     const h = Math.abs(pos.y - state.drawStart.y);
 
-    // Only add if rect is big enough (at least 3% of image)
     if (w > 0.03 && h > 0.03) {
       state.drawRects.push({ x, y, w, h });
     }
@@ -305,7 +329,6 @@
     redrawCanvas();
   }
 
-  // Undo / clear
   btnUndoArea.addEventListener('click', () => {
     state.drawRects.pop();
     redrawCanvas();
@@ -316,27 +339,22 @@
     redrawCanvas();
   });
 
-  // Skip = apply to all walls
   btnSkipArea.addEventListener('click', () => {
     state.drawRects = [];
     state.selectedWall = 'all';
-    showStep(stepCatalog);
-    stepUpload.classList.remove('hidden');
+    goToStep(3);
   });
 
-  // Confirm area
   btnConfirmArea.addEventListener('click', () => {
-    if (state.drawRects.length === 0) {
-      state.selectedWall = 'all';
-    } else {
-      state.selectedWall = 'custom';
-    }
-    showStep(stepCatalog);
-    stepUpload.classList.remove('hidden');
+    state.selectedWall = state.drawRects.length > 0 ? 'custom' : 'all';
+    goToStep(3);
   });
+
+  // Back from step 2
+  $('#btn-back-2').addEventListener('click', () => goToStep(1));
 
   // ============================================================
-  // 2. Panel Catalog
+  // Step 3: Panel Catalog
   // ============================================================
   function buildCatalog() {
     panelGrid.innerHTML = '';
@@ -345,7 +363,6 @@
       card.className = 'tile-card';
       card.dataset.id = panel.id;
 
-      // Generate canvas swatch
       const canvas = document.createElement('canvas');
       canvas.width = 120;
       canvas.height = 120;
@@ -365,7 +382,7 @@
 
   function selectPanel(id) {
     state.selectedPanelId = id;
-    document.querySelectorAll('.tile-card').forEach(c => {
+    $$('.tile-card').forEach(c => {
       c.classList.toggle('selected', c.dataset.id === id);
     });
     btnGenerate.disabled = false;
@@ -373,19 +390,20 @@
 
   buildCatalog();
 
-  // ============================================================
-  // 3. Model selector
-  // ============================================================
-  document.querySelectorAll('.model-btn').forEach(btn => {
+  // Model selector
+  $$('.model-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('selected'));
+      $$('.model-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       state.model = btn.dataset.model;
     });
   });
 
+  // Back from step 3
+  $('#btn-back-3').addEventListener('click', () => goToStep(2));
+
   // ============================================================
-  // 4. Generate via server proxy -> Gemini API
+  // Step 4: Generate
   // ============================================================
   btnGenerate.addEventListener('click', generatePreview);
 
@@ -395,7 +413,6 @@
     const panel = PANEL_CATALOG.find(p => p.id === state.selectedPanelId);
     if (!panel) return;
 
-    // Build prompt
     let areaDescription;
     if (state.selectedWall === 'custom' && state.drawRects.length > 0) {
       const zones = state.drawRects.map((r, i) => {
@@ -450,12 +467,11 @@
 
       state.resultImage = data.image;
 
-      // Show result
       $('#result-before').src = state.originalImage;
       $('#result-after').src = state.resultImage;
 
       showLoading(false);
-      showStep(stepResult);
+      goToStep(4);
       initComparison();
 
     } catch (err) {
@@ -468,9 +484,9 @@
   }
 
   // ============================================================
-  // 5. Comparison Slider
+  // Comparison Slider
   // ============================================================
-  let dragging = false;
+  let sliderDragging = false;
 
   function initComparison() {
     state.sliderPos = 0.5;
@@ -488,18 +504,18 @@
   const compSlider = $('#comparison-slider');
 
   compSlider?.addEventListener('mousedown', (e) => {
-    dragging = true;
+    sliderDragging = true;
     moveSlider(e);
   });
   compSlider?.addEventListener('touchstart', (e) => {
-    dragging = true;
+    sliderDragging = true;
     moveSlider(e.touches[0]);
   }, { passive: true });
 
-  window.addEventListener('mousemove', (e) => { if (dragging) moveSlider(e); });
-  window.addEventListener('touchmove', (e) => { if (dragging) moveSlider(e.touches[0]); }, { passive: true });
-  window.addEventListener('mouseup', () => dragging = false);
-  window.addEventListener('touchend', () => dragging = false);
+  window.addEventListener('mousemove', (e) => { if (sliderDragging) moveSlider(e); });
+  window.addEventListener('touchmove', (e) => { if (sliderDragging) moveSlider(e.touches[0]); }, { passive: true });
+  window.addEventListener('mouseup', () => sliderDragging = false);
+  window.addEventListener('touchend', () => sliderDragging = false);
 
   function moveSlider(e) {
     const rect = compSlider.getBoundingClientRect();
@@ -510,7 +526,7 @@
   }
 
   // ============================================================
-  // 6. Actions
+  // Actions
   // ============================================================
   $('#btn-download')?.addEventListener('click', () => {
     if (!state.resultImage) return;
@@ -521,12 +537,11 @@
   });
 
   $('#btn-retry')?.addEventListener('click', () => {
-    showStep(stepCatalog);
-    stepUpload.classList.remove('hidden');
+    goToStep(3);
   });
 
   // ============================================================
-  // 7. Loading & Errors
+  // Loading & Errors
   // ============================================================
   const loadingMessages = [
     'La IA esta analizando tu espacio...',

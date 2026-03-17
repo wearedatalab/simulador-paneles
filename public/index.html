@@ -2,14 +2,14 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Simulador de Paneles — Vista previa con IA</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <!-- API status banner (hidden by default) -->
   <div id="api-status-banner" class="api-banner hidden">
-    <span>&#9888; API key no configurada. Edita el archivo <code>.env</code> con tu clave de <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a> y reinicia el servidor.</span>
+    <span>&#9888; API key no configurada.</span>
   </div>
 
   <!-- Header -->
@@ -29,115 +29,143 @@
     </div>
   </header>
 
+  <!-- Wizard Progress Bar -->
+  <div class="wizard-progress">
+    <div class="wizard-steps">
+      <div class="wizard-step active" data-step="1">
+        <div class="wizard-dot">1</div>
+        <span>Foto</span>
+      </div>
+      <div class="wizard-line"></div>
+      <div class="wizard-step" data-step="2">
+        <div class="wizard-dot">2</div>
+        <span>&Aacute;rea</span>
+      </div>
+      <div class="wizard-line"></div>
+      <div class="wizard-step" data-step="3">
+        <div class="wizard-dot">3</div>
+        <span>Panel</span>
+      </div>
+      <div class="wizard-line"></div>
+      <div class="wizard-step" data-step="4">
+        <div class="wizard-dot">4</div>
+        <span>Resultado</span>
+      </div>
+    </div>
+  </div>
+
   <main class="container">
 
     <!-- ============ STEP 1: Upload ============ -->
-    <section id="step-upload" class="step">
-      <div class="step-header">
-        <span class="step-number">1</span>
-        <h2>Sube una foto de tu pared</h2>
-      </div>
+    <section id="step-upload" class="step active">
+      <div class="step-card">
+        <h2 class="step-title">Sube una foto de tu pared</h2>
+        <p class="step-desc">Toma o selecciona una foto frontal del espacio donde quieres visualizar los paneles.</p>
 
-      <div id="upload-area" class="upload-area">
-        <div id="upload-placeholder" class="upload-placeholder">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-          <p class="upload-text">Arrastra una foto aqu&iacute;</p>
-          <p class="upload-subtext">o haz clic para seleccionar</p>
-          <span class="upload-formats">JPG, PNG &mdash; Hasta 10MB</span>
-        </div>
-        <img id="preview-image" class="preview-image hidden" alt="Vista previa" />
-        <button id="btn-change" class="btn-change hidden">&#8613; Cambiar foto</button>
-        <input type="file" id="file-input" accept="image/jpeg,image/png" hidden />
-      </div>
-
-      <p class="upload-tip">&#9201; Usa una foto frontal de la pared para mejores resultados</p>
-    </section>
-
-    <!-- ============ STEP 1.5: Select wall area ============ -->
-    <section id="step-select-area" class="step hidden">
-      <div class="step-header">
-        <span class="step-number">2</span>
-        <h2>Marca la pared donde aplicar paneles</h2>
-      </div>
-
-      <p class="area-instructions">Dibuja un rect&aacute;ngulo sobre la pared donde quieres colocar los paneles. Puedes dibujar varias &aacute;reas.</p>
-
-      <div class="canvas-wrapper" id="canvas-wrapper">
-        <canvas id="draw-canvas"></canvas>
-      </div>
-
-      <div class="area-actions">
-        <button id="btn-undo-area" class="btn-small" disabled>&#8630; Deshacer</button>
-        <button id="btn-clear-areas" class="btn-small" disabled>&#10005; Limpiar todo</button>
-        <button id="btn-skip-area" class="btn-small btn-ghost">Toda la pared &#8594;</button>
-      </div>
-
-      <button id="btn-confirm-area" class="btn-generate">Continuar &#8594;</button>
-    </section>
-
-    <!-- ============ STEP 2: Panel Catalog ============ -->
-    <section id="step-catalog" class="step hidden">
-      <div class="step-header">
-        <span class="step-number">3</span>
-        <h2>Elige un panel</h2>
-      </div>
-      <div id="panel-grid" class="tile-grid"></div>
-
-      <!-- Additional instructions -->
-      <div class="instructions-block">
-        <label for="extra-instructions" class="instructions-label">Instrucciones adicionales <span class="optional">(opcional)</span></label>
-        <textarea id="extra-instructions" class="instructions-textarea" rows="3" placeholder="Ej: Solo cubre la pared izquierda, no la derecha..."></textarea>
-      </div>
-
-      <!-- Model selector -->
-      <div class="model-selector">
-        <label class="model-label">Modelo de IA</label>
-        <div class="model-options">
-          <button class="model-btn selected" data-model="gemini-2.5-flash-image">
-            <strong>Flash 2.5</strong><span>R&aacute;pido</span>
-          </button>
-          <button class="model-btn" data-model="gemini-3.1-flash-image-preview">
-            <strong>Flash 3.1</strong><span>Mejor calidad</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Generate button -->
-      <button id="btn-generate" class="btn-generate" disabled>
-        &#9889; Generar vista previa con IA
-      </button>
-    </section>
-
-    <!-- ============ STEP 3: Result ============ -->
-    <section id="step-result" class="step hidden">
-      <div class="step-header">
-        <span class="step-number">4</span>
-        <h2>Resultado</h2>
-      </div>
-
-      <div class="result-container">
-        <div class="comparison-slider" id="comparison-slider">
-          <img id="result-before" class="comparison-img" alt="Antes" />
-          <img id="result-after" class="comparison-img comparison-after" alt="Despu&eacute;s" />
-          <div class="slider-line" id="slider-line">
-            <div class="slider-handle">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                <path d="M8 5l-5 7 5 7M16 5l5 7-5 7"/>
-              </svg>
-            </div>
+        <div id="upload-area" class="upload-area">
+          <div id="upload-placeholder" class="upload-placeholder">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <p class="upload-text">Toca para seleccionar foto</p>
+            <p class="upload-subtext">o arrastra una imagen aqu&iacute;</p>
+            <span class="upload-formats">JPG, PNG &mdash; Hasta 10MB</span>
           </div>
-          <span class="label-before">Antes</span>
-          <span class="label-after">Despu&eacute;s</span>
+          <img id="preview-image" class="preview-image hidden" alt="Vista previa" />
+          <input type="file" id="file-input" accept="image/jpeg,image/png" hidden />
+        </div>
+
+        <div id="upload-actions" class="step-actions hidden">
+          <button id="btn-change" class="btn-outline">&#8613; Cambiar foto</button>
+          <button id="btn-next-1" class="btn-primary">Siguiente &#8594;</button>
         </div>
       </div>
+    </section>
 
-      <div class="result-actions">
-        <button id="btn-download" class="btn-secondary">&#11015; Descargar imagen</button>
-        <button id="btn-retry" class="btn-secondary">&#8635; Intentar de nuevo</button>
+    <!-- ============ STEP 2: Select wall area ============ -->
+    <section id="step-select-area" class="step">
+      <div class="step-card">
+        <h2 class="step-title">Marca la pared</h2>
+        <p class="step-desc">Dibuja un rect&aacute;ngulo sobre el &aacute;rea donde quieres colocar los paneles.</p>
+
+        <div class="canvas-wrapper" id="canvas-wrapper">
+          <canvas id="draw-canvas"></canvas>
+        </div>
+
+        <div class="area-actions">
+          <button id="btn-undo-area" class="btn-chip" disabled>&#8630; Deshacer</button>
+          <button id="btn-clear-areas" class="btn-chip" disabled>&#10005; Limpiar</button>
+        </div>
+
+        <div class="step-actions">
+          <button id="btn-back-2" class="btn-outline">&#8592; Atr&aacute;s</button>
+          <button id="btn-skip-area" class="btn-outline">Toda la pared</button>
+          <button id="btn-confirm-area" class="btn-primary">Siguiente &#8594;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 3: Panel Catalog ============ -->
+    <section id="step-catalog" class="step">
+      <div class="step-card">
+        <h2 class="step-title">Elige un panel</h2>
+        <p class="step-desc">Selecciona el estilo de panel que quieres visualizar en tu pared.</p>
+
+        <div id="panel-grid" class="tile-grid"></div>
+
+        <!-- Additional instructions -->
+        <div class="instructions-block">
+          <label for="extra-instructions" class="instructions-label">Instrucciones adicionales <span class="optional">(opcional)</span></label>
+          <textarea id="extra-instructions" class="instructions-textarea" rows="2" placeholder="Ej: Solo cubre la pared izquierda..."></textarea>
+        </div>
+
+        <!-- Model selector -->
+        <div class="model-selector">
+          <label class="model-label">Modelo de IA</label>
+          <div class="model-options">
+            <button class="model-btn selected" data-model="gemini-2.5-flash-image">
+              <strong>Flash 2.5</strong><span>R&aacute;pido</span>
+            </button>
+            <button class="model-btn" data-model="gemini-3.1-flash-image-preview">
+              <strong>Flash 3.1</strong><span>Mejor calidad</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button id="btn-back-3" class="btn-outline">&#8592; Atr&aacute;s</button>
+          <button id="btn-generate" class="btn-primary btn-generate" disabled>&#9889; Generar vista previa</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 4: Result ============ -->
+    <section id="step-result" class="step">
+      <div class="step-card">
+        <h2 class="step-title">Resultado</h2>
+
+        <div class="result-container">
+          <div class="comparison-slider" id="comparison-slider">
+            <img id="result-before" class="comparison-img" alt="Antes" />
+            <img id="result-after" class="comparison-img comparison-after" alt="Despu&eacute;s" />
+            <div class="slider-line" id="slider-line">
+              <div class="slider-handle">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                  <path d="M8 5l-5 7 5 7M16 5l5 7-5 7"/>
+                </svg>
+              </div>
+            </div>
+            <span class="label-before">Antes</span>
+            <span class="label-after">Despu&eacute;s</span>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button id="btn-download" class="btn-outline">&#11015; Descargar</button>
+          <button id="btn-retry" class="btn-primary">&#8635; Probar otro panel</button>
+        </div>
       </div>
     </section>
 
@@ -155,11 +183,6 @@
 
   <!-- Toast -->
   <div id="toast" class="toast hidden"></div>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <p>Simulador potenciado por IA Gemini &mdash; &copy; 2026</p>
-  </footer>
 
   <script src="panels.js"></script>
   <script src="app.js"></script>
