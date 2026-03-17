@@ -100,6 +100,20 @@
   }
 
   // ============================================================
+  // Wizard step click navigation (only backward to completed steps)
+  // ============================================================
+  $$('.wizard-step').forEach(ws => {
+    ws.style.cursor = 'pointer';
+    ws.addEventListener('click', () => {
+      const targetStep = parseInt(ws.dataset.step);
+      // Only allow going back to completed steps (not forward)
+      if (targetStep < state.currentStep) {
+        goToStep(targetStep);
+      }
+    });
+  });
+
+  // ============================================================
   // Step 1: File Upload
   // ============================================================
   uploadArea.addEventListener('click', (e) => {

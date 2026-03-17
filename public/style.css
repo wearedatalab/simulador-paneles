@@ -168,6 +168,19 @@ body {
   border-color: #10b981;
 }
 
+.wizard-step.completed {
+  cursor: pointer !important;
+}
+
+.wizard-step.completed:hover .wizard-dot {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+}
+
+.wizard-step.completed:hover span {
+  color: #10b981;
+}
+
 .wizard-line {
   flex: 1;
   height: 2px;
