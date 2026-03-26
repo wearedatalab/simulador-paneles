@@ -12,7 +12,7 @@
     originalMime: 'image/jpeg',
     selectedPanelId: null,
     selectedWall: 'all',
-    model: 'gemini-2.5-flash-image',
+    model: 'gemini-3.1-flash-image-preview',
     resultImage: null,
     sliderPos: 0.5,
     drawRects: [],
