@@ -128,8 +128,8 @@
     <!-- ============ STEP 2: Select wall area ============ -->
     <section id="step-select-area" class="step">
       <div class="step-card">
-        <h2 class="step-title">Marca la pared</h2>
-        <p class="step-desc">Arrastra el dedo o mouse sobre la pared para marcar d&oacute;nde quieres los paneles.</p>
+        <h2 class="step-title">Marca las &aacute;reas</h2>
+        <p class="step-desc">Dibuja rect&aacute;ngulos sobre las paredes o techo donde quieres colocar paneles. Puedes marcar varias zonas.</p>
 
         <!-- Hint overlay (shown until first draw) -->
         <div id="draw-hint" class="draw-hint">
@@ -138,13 +138,16 @@
               <path d="M3 3h7v7H3zM14 3h7v7h-7z" stroke-dasharray="3 2"/>
               <path d="M8 16l-2 2m0 0l-2-2m2 2V12"/>
             </svg>
-            <span>Dibuja un rect&aacute;ngulo sobre la pared</span>
+            <span>Dibuja un rect&aacute;ngulo sobre cada &aacute;rea (paredes, techo, etc.)</span>
           </div>
         </div>
 
         <div class="canvas-wrapper" id="canvas-wrapper">
           <canvas id="draw-canvas"></canvas>
         </div>
+
+        <!-- Zone labels -->
+        <div id="zone-labels" class="zone-labels hidden"></div>
 
         <div class="area-actions">
           <button id="btn-undo-area" class="btn-chip" disabled>&#8630; Deshacer</button>

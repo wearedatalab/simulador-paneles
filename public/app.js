@@ -232,56 +232,80 @@
       ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
       ctx.drawImage(img, 0, 0, drawCanvas.width, drawCanvas.height);
 
-      state.drawRects.forEach((r, i) => {
-        const x = r.x * drawCanvas.width;
-        const y = r.y * drawCanvas.height;
-        const w = r.w * drawCanvas.width;
-        const h = r.h * drawCanvas.height;
-
-        ctx.fillStyle = 'rgba(37, 99, 235, 0.25)';
-        ctx.fillRect(x, y, w, h);
-        ctx.strokeStyle = '#2563eb';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([6, 3]);
-        ctx.strokeRect(x, y, w, h);
-        ctx.setLineDash([]);
-
-        ctx.fillStyle = 'rgba(37, 99, 235, 0.85)';
-        ctx.font = 'bold 13px Inter, system-ui, sans-serif';
-        ctx.fillText(`Zona ${i + 1}`, x + 5, y + 16);
-      });
-
+      state.drawRects.forEach((r, i) => drawZoneRect(ctx, r, i));
       updateAreaButtons();
     };
     img.src = state.originalImage;
+  }
+
+  function drawZoneRect(ctx, r, i) {
+    const c = getZoneColor(i);
+    const x = r.x * drawCanvas.width;
+    const y = r.y * drawCanvas.height;
+    const w = r.w * drawCanvas.width;
+    const h = r.h * drawCanvas.height;
+
+    ctx.fillStyle = c.fill;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = c.stroke;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 3]);
+    ctx.strokeRect(x, y, w, h);
+    ctx.setLineDash([]);
+
+    // Label background
+    const label = ZONE_NAMES[i] || `Zona ${i+1}`;
+    ctx.font = 'bold 13px Inter, system-ui, sans-serif';
+    const tw = ctx.measureText(label).width;
+    ctx.fillStyle = c.stroke;
+    ctx.beginPath();
+    ctx.roundRect(x, y, tw + 14, 22, [0, 0, 6, 0]);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillText(label, x + 7, y + 15);
   }
 
   function redrawCanvasSync() {
     const ctx = drawCanvas.getContext('2d');
     ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
     ctx.drawImage(previewImage, 0, 0, drawCanvas.width, drawCanvas.height);
-
-    state.drawRects.forEach((r, i) => {
-      const x = r.x * drawCanvas.width;
-      const y = r.y * drawCanvas.height;
-      const w = r.w * drawCanvas.width;
-      const h = r.h * drawCanvas.height;
-
-      ctx.fillStyle = 'rgba(37, 99, 235, 0.25)';
-      ctx.fillRect(x, y, w, h);
-      ctx.strokeStyle = '#2563eb';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 3]);
-      ctx.strokeRect(x, y, w, h);
-      ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(37, 99, 235, 0.85)';
-      ctx.font = 'bold 13px Inter, system-ui, sans-serif';
-      ctx.fillText(`Zona ${i + 1}`, x + 5, y + 16);
-    });
+    state.drawRects.forEach((r, i) => drawZoneRect(ctx, r, i));
   }
 
   const drawHint = $('#draw-hint');
   const areaCount = $('#area-count');
+  const zoneLabelsContainer = $('#zone-labels');
+
+  const ZONE_COLORS = [
+    { fill: 'rgba(37, 99, 235, 0.25)', stroke: '#2563eb', bg: '#eff6ff', text: '#2563eb' },
+    { fill: 'rgba(168, 85, 247, 0.25)', stroke: '#a855f7', bg: '#faf5ff', text: '#a855f7' },
+    { fill: 'rgba(234, 179, 8, 0.25)', stroke: '#ca8a04', bg: '#fefce8', text: '#ca8a04' },
+    { fill: 'rgba(16, 185, 129, 0.25)', stroke: '#059669', bg: '#ecfdf5', text: '#059669' },
+    { fill: 'rgba(239, 68, 68, 0.25)', stroke: '#ef4444', bg: '#fef2f2', text: '#ef4444' },
+  ];
+
+  const ZONE_NAMES = ['Zona 1', 'Zona 2', 'Zona 3', 'Zona 4', 'Zona 5'];
+
+  function getZoneColor(i) {
+    return ZONE_COLORS[i % ZONE_COLORS.length];
+  }
+
+  function updateZoneLabels() {
+    if (!zoneLabelsContainer) return;
+    if (state.drawRects.length === 0) {
+      zoneLabelsContainer.classList.add('hidden');
+      zoneLabelsContainer.innerHTML = '';
+      return;
+    }
+    zoneLabelsContainer.classList.remove('hidden');
+    zoneLabelsContainer.innerHTML = state.drawRects.map((_, i) => {
+      const c = getZoneColor(i);
+      return `<span class="zone-label" style="background:${c.bg};border-color:${c.stroke};color:${c.text}">
+        <span class="zone-color-dot" style="background:${c.stroke}"></span>
+        ${ZONE_NAMES[i] || 'Zona ' + (i+1)}
+      </span>`;
+    }).join('');
+  }
 
   function updateAreaButtons() {
     const hasRects = state.drawRects.length > 0;
@@ -303,6 +327,8 @@
         areaCount.classList.add('hidden');
       }
     }
+
+    updateZoneLabels();
   }
 
   function getCanvasPos(e) {
@@ -332,14 +358,15 @@
 
     redrawCanvasSync();
     const ctx = drawCanvas.getContext('2d');
+    const nextColor = getZoneColor(state.drawRects.length);
     const x = state.drawStart.x * drawCanvas.width;
     const y = state.drawStart.y * drawCanvas.height;
     const w = (pos.x - state.drawStart.x) * drawCanvas.width;
     const h = (pos.y - state.drawStart.y) * drawCanvas.height;
 
-    ctx.fillStyle = 'rgba(37, 99, 235, 0.2)';
+    ctx.fillStyle = nextColor.fill;
     ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = '#2563eb';
+    ctx.strokeStyle = nextColor.stroke;
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 3]);
     ctx.strokeRect(x, y, w, h);
