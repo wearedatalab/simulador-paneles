@@ -129,16 +129,20 @@
     <section id="step-select-area" class="step">
       <div class="step-card">
         <h2 class="step-title">Marca las &aacute;reas</h2>
-        <p class="step-desc">Dibuja rect&aacute;ngulos sobre las paredes o techo donde quieres colocar paneles. Puedes marcar varias zonas.</p>
+        <p class="step-desc">Toca los puntos alrededor de cada pared o techo para marcar d&oacute;nde quieres los paneles. Cierra la forma tocando el primer punto.</p>
 
         <!-- Hint overlay (shown until first draw) -->
         <div id="draw-hint" class="draw-hint">
           <div class="draw-hint-inner">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 3h7v7H3zM14 3h7v7h-7z" stroke-dasharray="3 2"/>
-              <path d="M8 16l-2 2m0 0l-2-2m2 2V12"/>
+              <circle cx="4" cy="4" r="2"/><circle cx="20" cy="4" r="2"/>
+              <circle cx="20" cy="20" r="2"/><circle cx="4" cy="20" r="2"/>
+              <line x1="6" y1="4" x2="18" y2="4"/>
+              <line x1="20" y1="6" x2="20" y2="18"/>
+              <line x1="18" y1="20" x2="6" y2="20"/>
+              <line x1="4" y1="18" x2="4" y2="6"/>
             </svg>
-            <span>Dibuja un rect&aacute;ngulo sobre cada &aacute;rea (paredes, techo, etc.)</span>
+            <span>Toca las esquinas de la pared para crear una zona. Cierra tocando el primer punto.</span>
           </div>
         </div>
 

@@ -15,9 +15,9 @@
     model: 'gemini-3.1-flash-image-preview',
     resultImage: null,
     sliderPos: 0.5,
-    drawRects: [],
-    isDrawing: false,
-    drawStart: null,
+    // Polygon-based areas: each zone is an array of {x, y} points (normalized 0-1)
+    zones: [],          // Array of completed polygons: [ [{x,y}, ...], ... ]
+    currentPoints: [],  // Points of polygon being drawn
     naturalWidth: 0,
     naturalHeight: 0,
   };
@@ -192,14 +192,18 @@
   // Next from step 1
   $('#btn-next-1').addEventListener('click', () => {
     if (!state.originalImage) return;
-    state.drawRects = [];
+    state.zones = [];
+    state.currentPoints = [];
     initDrawCanvas();
     goToStep(2);
   });
 
   // ============================================================
-  // Step 2: Draw area selector
+  // Step 2: Polygon area selector (connect-the-dots)
   // ============================================================
+  const POINT_RADIUS = 10;
+  const CLOSE_THRESHOLD = 20; // px distance to close polygon
+
   function initDrawCanvas() {
     const img = new Image();
     img.onload = () => {
@@ -209,7 +213,6 @@
       let canvasW = wrapperWidth;
       let canvasH = Math.round(wrapperWidth * ratio);
 
-      // Limit height to 55vh
       if (canvasH > maxH) {
         canvasH = Math.round(maxH);
         canvasW = Math.round(canvasH / ratio);
@@ -232,44 +235,90 @@
       ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
       ctx.drawImage(img, 0, 0, drawCanvas.width, drawCanvas.height);
 
-      state.drawRects.forEach((r, i) => drawZoneRect(ctx, r, i));
+      // Draw completed zones
+      state.zones.forEach((poly, i) => drawPolygon(ctx, poly, i, true));
+
+      // Draw current in-progress polygon
+      if (state.currentPoints.length > 0) {
+        drawPolygon(ctx, state.currentPoints, state.zones.length, false);
+      }
+
       updateAreaButtons();
     };
     img.src = state.originalImage;
   }
 
-  function drawZoneRect(ctx, r, i) {
-    const c = getZoneColor(i);
-    const x = r.x * drawCanvas.width;
-    const y = r.y * drawCanvas.height;
-    const w = r.w * drawCanvas.width;
-    const h = r.h * drawCanvas.height;
+  function drawPolygon(ctx, points, zoneIndex, closed) {
+    if (points.length === 0) return;
+    const c = getZoneColor(zoneIndex);
+    const W = drawCanvas.width;
+    const H = drawCanvas.height;
 
+    // Draw filled polygon
+    ctx.beginPath();
+    ctx.moveTo(points[0].x * W, points[0].y * H);
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(points[i].x * W, points[i].y * H);
+    }
+    if (closed) ctx.closePath();
     ctx.fillStyle = c.fill;
-    ctx.fillRect(x, y, w, h);
+    ctx.fill();
+
+    // Draw polygon outline
+    ctx.beginPath();
+    ctx.moveTo(points[0].x * W, points[0].y * H);
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(points[i].x * W, points[i].y * H);
+    }
+    if (closed) ctx.closePath();
     ctx.strokeStyle = c.stroke;
     ctx.lineWidth = 2;
-    ctx.setLineDash([6, 3]);
-    ctx.strokeRect(x, y, w, h);
+    ctx.setLineDash(closed ? [] : [6, 3]);
+    ctx.stroke();
     ctx.setLineDash([]);
 
-    // Label background
-    const label = ZONE_NAMES[i] || `Zona ${i+1}`;
-    ctx.font = 'bold 13px Inter, system-ui, sans-serif';
-    const tw = ctx.measureText(label).width;
-    ctx.fillStyle = c.stroke;
-    ctx.beginPath();
-    ctx.roundRect(x, y, tw + 14, 22, [0, 0, 6, 0]);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.fillText(label, x + 7, y + 15);
-  }
+    // Draw points (dots)
+    points.forEach((pt, i) => {
+      const px = pt.x * W;
+      const py = pt.y * H;
 
-  function redrawCanvasSync() {
-    const ctx = drawCanvas.getContext('2d');
-    ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-    ctx.drawImage(previewImage, 0, 0, drawCanvas.width, drawCanvas.height);
-    state.drawRects.forEach((r, i) => drawZoneRect(ctx, r, i));
+      ctx.beginPath();
+      ctx.arc(px, py, POINT_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = (i === 0 && !closed && points.length >= 3) ? '#fff' : c.stroke;
+      ctx.fill();
+      ctx.strokeStyle = c.stroke;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // First point: show "close" indicator when enough points
+      if (i === 0 && !closed && points.length >= 3) {
+        ctx.beginPath();
+        ctx.arc(px, py, POINT_RADIUS + 4, 0, Math.PI * 2);
+        ctx.strokeStyle = c.stroke;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    });
+
+    // Zone label for completed zones
+    if (closed && points.length >= 3) {
+      const cx = points.reduce((s, p) => s + p.x, 0) / points.length * W;
+      const cy = points.reduce((s, p) => s + p.y, 0) / points.length * H;
+      const label = ZONE_NAMES[zoneIndex] || `Zona ${zoneIndex + 1}`;
+      ctx.font = 'bold 13px Inter, system-ui, sans-serif';
+      const tw = ctx.measureText(label).width;
+      const lx = cx - (tw + 14) / 2;
+      const ly = cy - 11;
+
+      ctx.fillStyle = c.stroke;
+      ctx.beginPath();
+      ctx.roundRect(lx, ly, tw + 14, 22, 6);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.fillText(label, lx + 7, ly + 15);
+    }
   }
 
   const drawHint = $('#draw-hint');
@@ -292,37 +341,49 @@
 
   function updateZoneLabels() {
     if (!zoneLabelsContainer) return;
-    if (state.drawRects.length === 0) {
+    const total = state.zones.length;
+    if (total === 0 && state.currentPoints.length === 0) {
       zoneLabelsContainer.classList.add('hidden');
       zoneLabelsContainer.innerHTML = '';
       return;
     }
     zoneLabelsContainer.classList.remove('hidden');
-    zoneLabelsContainer.innerHTML = state.drawRects.map((_, i) => {
+    const allZones = [...state.zones.map((_, i) => i)];
+    if (state.currentPoints.length > 0) allZones.push(state.zones.length);
+
+    zoneLabelsContainer.innerHTML = allZones.map((i) => {
       const c = getZoneColor(i);
+      const isCurrent = i === state.zones.length && state.currentPoints.length > 0;
       return `<span class="zone-label" style="background:${c.bg};border-color:${c.stroke};color:${c.text}">
         <span class="zone-color-dot" style="background:${c.stroke}"></span>
-        ${ZONE_NAMES[i] || 'Zona ' + (i+1)}
+        ${ZONE_NAMES[i] || 'Zona ' + (i + 1)}${isCurrent ? ' (dibujando...)' : ''}
       </span>`;
     }).join('');
   }
 
   function updateAreaButtons() {
-    const hasRects = state.drawRects.length > 0;
-    btnUndoArea.disabled = !hasRects;
-    btnClearAreas.disabled = !hasRects;
-    btnConfirmArea.disabled = !hasRects;
+    const hasZones = state.zones.length > 0;
+    const hasCurrentPoints = state.currentPoints.length > 0;
+    btnUndoArea.disabled = !hasZones && !hasCurrentPoints;
+    btnClearAreas.disabled = !hasZones && !hasCurrentPoints;
+    btnConfirmArea.disabled = !hasZones;
 
     // Show/hide hint
-    if (drawHint) drawHint.classList.toggle('hidden', hasRects);
+    if (drawHint) drawHint.classList.toggle('hidden', hasZones || hasCurrentPoints);
 
     // Update area count badge
     if (areaCount) {
-      if (hasRects) {
+      if (hasZones || hasCurrentPoints) {
         areaCount.classList.remove('hidden');
-        areaCount.textContent = state.drawRects.length === 1
-          ? '1 zona marcada'
-          : `${state.drawRects.length} zonas marcadas`;
+        const completed = state.zones.length;
+        const drawing = hasCurrentPoints ? 1 : 0;
+        if (completed === 0 && drawing) {
+          areaCount.textContent = 'Dibujando zona...';
+        } else {
+          areaCount.textContent = completed === 1
+            ? '1 zona marcada'
+            : `${completed} zonas marcadas`;
+        }
       } else {
         areaCount.classList.add('hidden');
       }
@@ -341,94 +402,90 @@
     };
   }
 
-  drawCanvas.addEventListener('mousedown', startDraw);
-  drawCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e); }, { passive: false });
-
-  function startDraw(e) {
-    state.isDrawing = true;
-    state.drawStart = getCanvasPos(e);
+  function distPixels(p1, p2) {
+    const dx = (p1.x - p2.x) * drawCanvas.width;
+    const dy = (p1.y - p2.y) * drawCanvas.height;
+    return Math.sqrt(dx * dx + dy * dy);
   }
 
-  window.addEventListener('mousemove', moveDraw);
-  window.addEventListener('touchmove', (e) => { if (state.isDrawing) { e.preventDefault(); moveDraw(e); } }, { passive: false });
+  // Click/tap to add a point
+  drawCanvas.addEventListener('click', onCanvasClick);
+  drawCanvas.addEventListener('touchend', onCanvasTap);
 
-  function moveDraw(e) {
-    if (!state.isDrawing || !state.drawStart) return;
-    const pos = getCanvasPos(e);
+  let lastTapTime = 0;
 
-    redrawCanvasSync();
-    const ctx = drawCanvas.getContext('2d');
-    const nextColor = getZoneColor(state.drawRects.length);
-    const x = state.drawStart.x * drawCanvas.width;
-    const y = state.drawStart.y * drawCanvas.height;
-    const w = (pos.x - state.drawStart.x) * drawCanvas.width;
-    const h = (pos.y - state.drawStart.y) * drawCanvas.height;
-
-    ctx.fillStyle = nextColor.fill;
-    ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = nextColor.stroke;
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6, 3]);
-    ctx.strokeRect(x, y, w, h);
-    ctx.setLineDash([]);
+  function onCanvasTap(e) {
+    e.preventDefault();
+    // Prevent double-firing with click
+    lastTapTime = Date.now();
+    const touch = e.changedTouches[0];
+    const rect = drawCanvas.getBoundingClientRect();
+    const pos = {
+      x: Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width)),
+      y: Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height)),
+    };
+    addPoint(pos);
   }
 
-  window.addEventListener('mouseup', endDraw);
-  window.addEventListener('touchend', endDraw);
+  function onCanvasClick(e) {
+    // Skip if a touch just happened (prevent double-fire)
+    if (Date.now() - lastTapTime < 300) return;
+    const rect = drawCanvas.getBoundingClientRect();
+    const pos = {
+      x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
+      y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
+    };
+    addPoint(pos);
+  }
 
-  function endDraw(e) {
-    if (!state.isDrawing || !state.drawStart) {
-      state.isDrawing = false;
-      return;
-    }
-    state.isDrawing = false;
-
-    let pos;
-    if (e.changedTouches) {
-      const rect = drawCanvas.getBoundingClientRect();
-      pos = {
-        x: Math.max(0, Math.min(1, (e.changedTouches[0].clientX - rect.left) / rect.width)),
-        y: Math.max(0, Math.min(1, (e.changedTouches[0].clientY - rect.top) / rect.height)),
-      };
-    } else {
-      const rect = drawCanvas.getBoundingClientRect();
-      pos = {
-        x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
-        y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
-      };
-    }
-
-    const x = Math.min(state.drawStart.x, pos.x);
-    const y = Math.min(state.drawStart.y, pos.y);
-    const w = Math.abs(pos.x - state.drawStart.x);
-    const h = Math.abs(pos.y - state.drawStart.y);
-
-    if (w > 0.03 && h > 0.03) {
-      state.drawRects.push({ x, y, w, h });
+  function addPoint(pos) {
+    // If we have 3+ points and click near the first point, close the polygon
+    if (state.currentPoints.length >= 3) {
+      const first = state.currentPoints[0];
+      if (distPixels(pos, first) < CLOSE_THRESHOLD) {
+        // Close polygon — save zone
+        state.zones.push([...state.currentPoints]);
+        state.currentPoints = [];
+        redrawCanvas();
+        return;
+      }
     }
 
-    state.drawStart = null;
+    // Add point
+    state.currentPoints.push(pos);
     redrawCanvas();
   }
 
   btnUndoArea.addEventListener('click', () => {
-    state.drawRects.pop();
+    if (state.currentPoints.length > 0) {
+      state.currentPoints.pop();
+    } else if (state.zones.length > 0) {
+      // Reopen last zone for editing
+      state.currentPoints = state.zones.pop();
+    }
     redrawCanvas();
   });
 
   btnClearAreas.addEventListener('click', () => {
-    state.drawRects = [];
+    state.zones = [];
+    state.currentPoints = [];
     redrawCanvas();
   });
 
   btnSkipArea.addEventListener('click', () => {
-    state.drawRects = [];
+    state.zones = [];
+    state.currentPoints = [];
     state.selectedWall = 'all';
     goToStep(3);
   });
 
   btnConfirmArea.addEventListener('click', () => {
-    state.selectedWall = state.drawRects.length > 0 ? 'custom' : 'all';
+    // Auto-close current polygon if it has 3+ points
+    if (state.currentPoints.length >= 3) {
+      state.zones.push([...state.currentPoints]);
+      state.currentPoints = [];
+    }
+    state.selectedWall = state.zones.length > 0 ? 'custom' : 'all';
     goToStep(3);
   });
 
@@ -498,13 +555,10 @@
     if (!panel) return;
 
     let areaDescription;
-    if (state.selectedWall === 'custom' && state.drawRects.length > 0) {
-      const zones = state.drawRects.map((r, i) => {
-        const left = Math.round(r.x * 100);
-        const top = Math.round(r.y * 100);
-        const right = Math.round((r.x + r.w) * 100);
-        const bottom = Math.round((r.y + r.h) * 100);
-        return `Zone ${i+1}: the rectangular area from approximately ${left}% to ${right}% horizontally, and ${top}% to ${bottom}% vertically`;
+    if (state.selectedWall === 'custom' && state.zones.length > 0) {
+      const zones = state.zones.map((poly, i) => {
+        const coords = poly.map(p => `(${Math.round(p.x * 100)}%, ${Math.round(p.y * 100)}%)`).join(' → ');
+        return `Zone ${i+1}: the polygon area defined by these points: ${coords}`;
       });
       areaDescription = `ONLY the following specific wall areas (leave everything else unchanged): ${zones.join('; ')}`;
     } else {
