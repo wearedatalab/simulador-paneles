@@ -1131,3 +1131,13 @@ body {
     font-size: 0.68rem;
   }
 }
+
+/* ---- Footer ---- */
+.app-footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  margin-top: 1rem;
+}
